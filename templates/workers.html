@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block styles %}
+{% endblock %}
+
+{% block title %}
+    VASP workers
+{% endblock %}
+
+{% block body_title %}
+    Workers
+{% endblock %}
+
+{% block body %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => { refresh(); });
+        
+        function refresh() {
+            fetch('/vasp/list_workers')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('workerTableBody');
+                    tableBody.innerHTML = '';
+                    data.forEach(worker => {
+                        const row = tableBody.insertRow();
+
+                        const idCell = row.insertCell();
+                        idCell.textContent = worker.worker_id;
+
+                        const statusCell = row.insertCell();
+                        statusCell.textContent = worker.status;
+
+                        const addressCell = row.insertCell();
+                        addressCell.textContent = worker.address;
+                        
+                        const pauseCell = row.insertCell();
+                        if (worker.paused == 'running') {
+                            const pauseButton = document.createElement('button');
+                            pauseButton.textContent = 'Pause';
+                            pauseButton.classList.add('btn', 'btn-small');
+                            pauseButton.onclick = function() { pause(worker.worker_id); };
+                            pauseCell.appendChild(pauseButton);
+                        }
+                    });
+                })
+                .catch(error => console.error('Error loading workers:', error));
+        }
+        
+        function pause(worker_id) {
+            fetch('/vasp/pause_worker/'+worker_id, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify([]),
+            })
+            
+            .then(response => {
+                if (response.ok) {
+                    refresh();
+                }
+            })
+            .catch(error => console.error('Error pausing:', error));
+        }
+    </script>
+
+    <div class="container">
+        <table id="workerTable" class="default-table">
+            <thead>
+                <tr class="header-row">
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Address</th>
+                    <th class='center-text'>Pause</th>
+                </tr>
+            </thead>
+            <tbody id="workerTableBody">
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

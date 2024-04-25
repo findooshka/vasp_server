@@ -1,0 +1,37 @@
+general:
+  SYSTEM    = DFT routine 
+  ISTART    = 0    # 0 (starting job), 1/2 (WAVECAR)
+  ICHARG    = 2    # init charge dens: 0 (WAVECAR), 1 (CHGCAR), 2 (POTCAR), 11 (for DOS) 
+  LORBIT    = 10   # Details partial contribution 
+  #NCORE = 2 up to number-of-cores-per-node
+  NPAR      = 5     # for parallelisation = sqrt(node), divisor of nb cores (24)
+  KPAR      = 1     # for parallelisation = multiple of nb task 
+  LELF      = F    # create ELFCAR
+  LWAVE     = F    ; LCHARG     = F 
+
+  ENCUT     = 400   # Cutoff Energy
+#  NBANDS    = 100   # if manual increase needed
+
+electronic minimization:
+  EDIFF     = 1E-5  # accurancy, allowed error in total energy 
+  NELM      = 100   # max of electronic steps
+  IALGO     = 38    # algorithm 38 (Kosugi), or faster 48 (RMM-DIIS)
+  LREAL     = F  # real-space projection, False (Reciprocal S) or True
+  PREC      = acc   # always accurate!
+
+Ionic Relaxation
+  EDIFFG    = 1E-4      # stop-criterion for IOM, =10*EDIFF, or <0 for condition on forces
+  NSW       = 10      # number of steps for IOM
+  ISIF      =    3  # relax: 2 (ion), 3 (all), 4 (ion+shape), 5(shape), 6(shape+vol), 7-(vol)
+  IBRION    =    1  # ionic relax: 0 (MD), 1 (quasi-New), 2 (CG), 6 (elastic-cons ISIF>2)
+  POTIM     = 0.10  # time-step for ionic-motion
+
+DOS related values:
+  ISMEAR    = 0    # 0 (semicond-insol), 1 (metal) ,-5 (Blöchl)
+  SIGMA     = 0.01 # Reduce if (F-D)>1 meV/at  
+
+#Spin:
+#  ISPIN    =  2
+#  MAGMOM   =  16*2     
+#  LNONCOLLINEAR =  F   # non collinear calculations
+#  LSORBIT  =  F        # spin-orbit coupling

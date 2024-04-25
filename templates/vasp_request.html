@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block styles %}
+{% endblock %}
+
+{% block title %}
+    VASP make request
+{% endblock %}
+
+{% block body_title %}
+    Make a VASP request
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <form id="vaspForm" method="post" enctype="multipart/form-data">
+            <div>
+                <label for="fileUpload" class="file-upload">Upload files in poscar format:</label>
+                <input type="file" id="fileUpload" name="fileUpload" style="display: none;" multiple required>
+                <span id="fileUploadName" class="small-description"></span>
+            </div><br>
+            <button type="submit" class="btn">Submit</button>
+            <div>
+                <label for="priority">Task priority:</label>
+                <select name="priority" id="priority">
+                    <option value="low">Low</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="high">High</option>
+                    <!-- Add more options as needed -->
+                </select>
+            </div>
+            <div>
+                <label for="incar">INCAR:</label><br>
+                <textarea id="incar" name="incar" rows="25" cols="150"> <!-- autocomplete=off -->
+                </textarea>
+            </div>
+            <div>
+                <label for="kpoints">KPOINTS:</label><br>
+                <textarea id="kpoints" name="kpoints" rows="15" cols="150"> <!-- autocomplete=off -->
+                </textarea>
+            </div>
+            <div>
+                <label for="reference_energies">Reference energies:</label><br>
+                <textarea id="reference_energies" name="reference_energies" rows="25" cols="150"> <!-- autocomplete=off -->
+                </textarea>
+            </div>
+        </form>
+    </div>
+    <script>
+        document.getElementById('fileUpload').addEventListener('change', function() {
+            var fileUploadElement = document.getElementById('fileUpload');
+            var fileNamesContainer = document.getElementById('fileUploadName');
+
+            if (fileUploadElement.files.length > 1) {
+                fileNamesContainer.innerHTML = fileUploadElement.files.length + ' files selected';
+            } else {
+                fileNamesContainer.innerHTML = fileUploadElement.files[0].name;
+            }
+        });
+        
+        
+        fetch('/static/INCAR.txt')
+        .then(response => response.text())
+        .then(text => {
+          document.getElementById('incar').innerHTML = text;
+        })
+        .catch(error => console.error('Error loading the default INCAR file:', error));
+        
+        fetch('/static/KPOINTS.txt')
+        .then(response => response.text())
+        .then(text => {
+          document.getElementById('kpoints').innerHTML = text;
+        })
+        .catch(error => console.error('Error loading the default INCAR file:', error));
+        
+        fetch('/static/reference_energies.yml')
+        .then(response => response.text())
+        .then(text => {
+          document.getElementById('reference_energies').innerHTML = text;
+        })
+        .catch(error => console.error('Error loading the default reference energies file:', error));
+        
+        document.getElementById('vaspForm').addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent the default form submission
+
+            var formData = new FormData(this);
+
+            fetch('/vasp/send_request', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.json(); // Return the promise containing the JSON object
+                } else {
+                    alert('There was an error processing your request.');
+                    return Promise.reject('Request failed.'); // Reject the promise chain if the response is not ok
+                }
+            })
+            .then(data => {
+                window.location.href = '/vasp/get_batch/' + data['batch_id'];
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+{% endblock %}

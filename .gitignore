@@ -1,0 +1,8 @@
+.ipynb_checkpoints
+.venv
+Untitled.ipynb
+__pycache__
+data/alex_data.json
+batch/*
+to_send/*
+vasp_orders/*

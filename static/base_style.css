@@ -1,0 +1,233 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.navbar {
+    background-color: #333;
+    overflow: hidden;
+}
+
+.nav-link {
+    float: left;
+    display: block;
+    color: white;
+    text-align: center;
+    padding: 14px 20px;
+    text-decoration: none;
+}
+
+.nav-link:hover {
+    background-color: #ddd;
+    color: black;
+}
+
+@media screen and (max-width: 600px) {
+    .nav-link {
+        float: none;
+        display: block;
+        text-align: left;
+    }
+}
+
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+    line-height: 1.6;
+}
+
+.container {
+    width: 80%;
+    margin: auto;
+    overflow: hidden;
+    padding: 20px;
+}
+
+.small-description {
+    display: block;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    color: #666;
+    font-size: 0.875rem; /* 14px if base font-size is 16px */
+}
+
+/* Alternatively, for inline descriptions or feedback */
+.inline-description {
+    display: inline-block;
+    margin-left: 10px;
+    color: #666;
+    font-size: 0.875rem; /* 14px if base font-size is 16px */
+}
+
+/* Highlighted text for warnings or important notes */
+.highlight-warning {
+    color: #d9534f; /* Bootstrap's btn-danger color for consistency */
+    font-weight: bold;
+}
+
+/* Highlighted text for success messages */
+.highlight-success {
+    color: #5cb85c; /* Bootstrap's btn-success color for consistency */
+    font-weight: bold;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: #333;
+}
+
+p {
+    margin-bottom: 20px;
+}
+
+/* Buttons */
+.btn {
+    display: inline-block;
+    background: #333;
+    color: #fff;
+    padding: 10px 20px;
+    margin: 5px 0px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.btn:hover {
+    background: #555;
+}
+
+.btn-small {
+    padding: 5px 10px; /* Reduced padding */
+    width: auto; /* Adjust based on content, up to max-width */
+    max-width: 100px; /* Maximum width */
+    display: block; /* Or inline-block, depending on layout needs */
+    margin: 0 auto; /* Center button within the <th> */
+}
+
+/* Utility Classes */
+.text-center {
+    text-align: center;
+}
+
+.text-primary {
+    color: #007bff;
+}
+
+/* Layout Classes */
+.row {
+    margin: 0 -15px;
+}
+
+.row::after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.col {
+    float: left;
+    width: 50%;
+    padding: 0 15px;
+}
+
+@media screen and (max-width: 768px) {
+    .col {
+        width: 100%;
+    }
+}
+
+
+
+.default-table {
+    border-collapse: collapse;
+    width: 100%;
+}
+.default-table th {
+    text-align: left;
+    color: black;
+}
+.default-table tr:hover {
+    background-color: #dddddd;
+}
+.default-table thead tr {
+    background-color: #bbbbbb; /* Example: Blue color for the header row */
+}
+.default-table thead tr:hover {
+    background-color: #bbbbbb; /* Prevents color change on hover */
+}
+/*.default-table thead tr th:nth-child(5) {
+    text-align: center;
+}
+.default-table tbody tr td:nth-child(5) {
+    text-align: center;
+}*/
+.default-table button {
+    width: 200px;
+}
+
+.default-table th.center-text {
+    text-align: center;
+}
+
+
+
+
+/* Form Inputs and Textarea */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    display: inline-block;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus,
+textarea:focus {
+    border-color: #007bff;
+}
+
+input[type="submit"],
+button.btn, /* Ensure this matches the class used for buttons */
+input[type="button"],
+input[type="reset"] {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover,
+button.btn:hover,
+input[type="button"]:hover,
+input[type="reset"]:hover {
+    background-color: #555;
+}
+
+/* Custom File Input Button */
+.file-upload {
+    display: inline-block;
+    padding: 10px 20px;
+    cursor: pointer;
+    background-color: #333;
+    color: white;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.file-upload:hover {
+    background-color: #555;
+}

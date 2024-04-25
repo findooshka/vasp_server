@@ -1,0 +1,7 @@
+debug: True
+
+server:
+    port: 8125
+
+data:
+    data_path: 'data/alex_data_smol.json'

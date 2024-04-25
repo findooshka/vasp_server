@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/base_style.css">
+    {% block styles %}
+    {% endblock %}
+    <title>{% block title %}Serverino{% endblock %}</title>
+    
+</head>
+<body>
+    <div class="navbar">
+        <a href="/" class="nav-link">Explore materials</a>
+        <a href="/vasp" class="nav-link">Make a vasp request</a>
+        <a href="/vasp/batches" class="nav-link">Batches</a>
+        <!--<a href="/vasp/tasks" class="nav-link">Tasks</a>-->
+        <a href="/vasp/workers" class="nav-link">Workers</a>
+    </div>    
+    <h1 class = "text-center"> {% block body_title %}Serverino page{% endblock %} </h1>
+    {% block body %}
+    {% endblock %}
+</body>
+</html>

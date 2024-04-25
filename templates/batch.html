@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block styles %}
+{% endblock %}
+
+{% block title %}
+    VASP batch
+{% endblock %}
+
+{% block body_title %}
+    Batch {{batch_id}}
+{% endblock %}
+
+{% block body %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/vasp/list_batch/{{batch_id}}')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById('taskTableBody');
+                    data.forEach(task => {
+                        const row = tableBody.insertRow();
+
+                        const idCell = row.insertCell();
+                        idCell.textContent = task.task_id;
+
+                        const statusCell = row.insertCell();
+                        statusCell.textContent = task.status;
+
+                        const timeCell = row.insertCell();
+                        const eCell = row.insertCell();
+                        const eFtCell = row.insertCell();
+                        
+                        if (task.status == 'finished' && task.result != 'None' && task.result !== null) {
+                            eCell.textContent = task.result.e;
+                            eFtCell.textContent = task.result.e_f;
+                        } else {
+                            eCell.textContent = '?';
+                            eFtCell.textContent = '?';
+                        }
+                        timeCell.textContent = task.time;
+                        
+                        
+                    });
+                })
+                .catch(error => console.error('Error loading tasks:', error));
+        });
+    </script>
+    <div class="container">
+        <form id="downloadForm" action="/vasp/download_batch" method="post" style="display: none;">
+            <input type="hidden" name="batch_id" id="batchIdField" value="{{ batch_id }}">
+        </form>
+        <button onclick="document.getElementById('downloadForm').submit();" class="btn">Download Batch</button>
+        
+        <table id="taskTable" class="default-table">
+            <thead>
+                <tr class="header-row">
+                    <th>ID</th>
+                    <th>Status</th>
+                    <th>Submission time</th>
+                    <th>Energy</th>
+                    <th>Energy of formation</th>
+                </tr>
+            </thead>
+            <tbody id="taskTableBody">
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

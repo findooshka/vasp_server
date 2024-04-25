@@ -1,0 +1,129 @@
+{% extends "base.html" %}
+
+{% block styles %}
+{% endblock %}
+
+{% block title %}
+    VASP batches
+{% endblock %}
+
+{% block body_title %}
+    Batches
+{% endblock %}
+
+{% block body %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {refresh();});
+        
+        function refresh() {
+            fetch('/vasp/list_batches')
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.getElementById('batchTableBody');
+                tableBody.innerHTML = '';
+                data.forEach(batch => {
+                    const row = tableBody.insertRow();
+
+                    const idCell = row.insertCell();
+                    const infoLink = document.createElement('a');
+                    infoLink.setAttribute('href', '/vasp/get_batch/' + batch.batch_id);
+                    infoLink.textContent = batch.batch_id;
+                    idCell.appendChild(infoLink);
+
+                    const statusCell = row.insertCell();
+                    statusCell.textContent = batch.finished + '/' + batch.total;
+
+                    const timeCell = row.insertCell();
+                    timeCell.textContent = batch.time;
+
+                    const authorCell = row.insertCell();
+                    authorCell.textContent = batch.author;
+
+                    const priorityCell = row.insertCell();
+                    priorityCell.textContent = batch.priority;
+                    
+                    const downloadCell = row.insertCell();
+                    const downloadButton = document.createElement('button');
+                    downloadButton.textContent = 'Download';
+                    downloadButton.classList.add('btn', 'btn-small');
+                    downloadButton.onclick = function() { download(batch.batch_id); };
+                    downloadCell.appendChild(downloadButton);
+
+                    const cancelCell = row.insertCell();
+                    if (batch.finished < batch.total) {
+                        const cancelButton = document.createElement('button');
+                        cancelButton.textContent = 'Cancel';
+                        cancelButton.classList.add('btn', 'btn-small');
+                        cancelButton.onclick = function() { cancel(batch.batch_id); };
+                        cancelCell.appendChild(cancelButton);
+                    }
+                });
+            })
+            .catch(error => console.error('Error loading batches:', error));
+        }
+        
+        function cancel(batch_id) {
+            fetch('/vasp/cancel_batch/'+batch_id, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify([]),
+            })
+            
+            .then(response => {
+                if (response.ok) {
+                    refresh();
+                }
+            })
+            .catch(error => console.error('Error cancelling:', error));
+        }
+        
+        function download(batch_id) {
+            fetch('/vasp/download_batch', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `batch_id=${encodeURIComponent(batch_id)}`
+            })
+            .then(response => {
+                if (response.ok) {
+                    return response.blob();
+                }
+                throw new Error('Network response was not ok.');
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = `${batch_id}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
+
+    <div class="container">
+        <table id="batchTable" class="default-table">
+            <thead>
+                <tr class="header-row">
+                    <th>ID</th>
+                    <th>Finished</th>
+                    <th>Submission time</th>
+                    <th>Submitted by</th>
+                    <th>Priority</th>
+                    <th class="center-text">Download</th>
+                    <th class="center-text">Cancel</th>
+                </tr>
+            </thead>
+            <tbody id="batchTableBody">
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

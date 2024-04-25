@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+
+{% block styles %}
+<style>
+    .decompose-table {
+        border-collapse: collapse;
+        width: 40%;
+    }
+    .decompose-table tr:hover {
+        background-color: #eeeeee;
+    }
+    .decompose-table thead tr.decompose_header {
+        text-align: left;
+        background-color: #dddddd; /* Example: Blue color for the header row */
+    }
+
+    .hull-table input {
+        width: 240px;
+    }
+</style>
+{% endblock %}
+
+{% block title %}
+    Explore a system
+{% endblock %}
+
+{% block body_title %}
+    Explore a system
+{% endblock %}
+
+{% block body %}
+    <div class="container">
+        <h3> Enter target system </h3>
+        <input type="text" id="dataInput" placeholder="Type something...">
+        <button onclick="submitData()" class="btn">Submit</button>
+        <br>
+        <br>
+        <table id="responseTable" class="default-table">
+            <thead>
+                <tr class="header-row">
+                    <th>Description   </th>
+                    <th>Space group number </th>
+                    <th>Formation Energy, eV/atom  </th>
+                    <th>Energy above hull, eV/atom  </th>
+                    <!--<th>Info</th>-->
+                    <th>Download</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+        </table>
+        <p id="responseText"></p>
+        <div id="convexHull"></div>
+    </div>
+    
+    <script>
+        document.getElementById('dataInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                event.preventDefault(); // Prevent the default action to stop form submission or any unwanted behavior
+                submitData(); // Call the function that handles your data submission
+            }
+        });
+        
+        function submitData() {
+            var inputData = document.getElementById('dataInput').value;
+
+            const responseContainer = document.getElementById('responseText');
+            const hullContainer = document.getElementById('convexHull');
+            responseContainer.innerHTML = 'Loading...'; // Clear previous responses
+            hullContainer.innerHTML = '';
+            
+            fetch('/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({data: inputData}),
+            })
+            
+            
+            .then(response => response.json())
+            .then(data => {
+                const tableBody = document.querySelector('#responseTable tbody');
+                tableBody.innerHTML = ''; // Clear previous content
+                
+                const responseContainer = document.getElementById('responseText');
+                responseContainer.innerHTML = ''; // Clear previous responses
+
+                // Dynamically add rows to the table for each item
+                data.struct_list.forEach(item => {
+                    const row = tableBody.insertRow();
+
+                    // Description cell
+                    const descriptionCell = row.insertCell();
+                    descriptionCell.textContent = item.description;
+                    
+                    const SGCell = row.insertCell();
+                    SGCell.textContent = item.sg;
+
+                    const formationECell = row.insertCell();
+                    formationECell.textContent = item.formation_e;
+                    
+                    const eAboveHullCell = row.insertCell();
+                    eAboveHullCell.textContent = item.e_above_hull;
+
+                    const downloadCell = row.insertCell();
+                    const downloadButton = document.createElement('button');
+                    downloadButton.textContent = 'Download';
+                    downloadButton.onclick = function() { download(item); };
+                    downloadCell.appendChild(downloadButton);
+                });
+                
+                if (data.struct_list.length > 0) {
+                    const row = tableBody.insertRow();
+                    const downloadCell = row.insertCell();
+                    row.insertCell();
+                    row.insertCell();
+                    row.insertCell();
+                    row.insertCell();
+                    const downloadButton = document.createElement('button');
+                    downloadButton.textContent = 'Download All';
+                    downloadButton.addEventListener('click', () => {downloadAll(data.struct_indices_exact_match, inputData);});
+                    downloadCell.appendChild(downloadButton);
+                }
+                
+                const hull_table = document.createElement('table');
+                hull_table.classList.add("hull-table");
+               
+                if (data.composition.length > 1) {
+                    data.composition.forEach(element => {
+                        const row = hull_table.insertRow();
+
+                        var cell = row.insertCell();
+                        cell.innerHTML = element + ": ";
+                        cell.style.textAlign = 'right';
+
+                        cell = row.insertCell();
+                        const inputField = document.createElement('input');
+                        inputField.setAttribute("id", "dynamicInput" + element);
+                        inputField.setAttribute("name", "hull_element_" + element);
+                        inputField.setAttribute("placeholder", "atomic site number or portion");
+                        cell.appendChild(inputField);
+                    });
+                    responseContainer.appendChild(hull_table);
+                
+                
+                    const row = hull_table.insertRow();
+                    
+                    var cell = row.insertCell();
+                    cell.innerHTML = 'Formation Energy: ';
+                    cell.style.textAlign = 'right';
+                    
+                    cell = row.insertCell();
+                    const inputField = document.createElement('input');
+                    inputField.setAttribute("id", "energyInput");
+                    inputField.setAttribute("placeholder", "0. if left blank");
+                    cell.appendChild(inputField);
+                    
+                    const hullButton = document.createElement('button');
+                    hullButton.textContent = 'Compare to convex hull';
+                    hullButton.addEventListener('click', () => {requestHull(data.composition, data.struct_indices);});
+                    hullContainer.appendChild(hullButton);
+
+                    const hullText = document.createElement('p');
+                    hullText.setAttribute("id", "convexHullValue");
+                    hullContainer.appendChild(hullText);
+                }
+            })
+            .catch((error) => {
+                const responseContainer = document.getElementById('responseText');
+                responseContainer.innerHTML = 'Error? ' + error; // Clear previous responses
+            });
+        }
+        
+        function download(item) {
+            fetch(item.downloadUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({data: []}),
+            })
+            .then(response => {
+                if (response.ok) return response.blob();
+                throw new Error('Network response was not ok.');
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+
+                a.download = item.fileName; // You can specify the filename here
+
+                document.body.appendChild(a);
+
+                a.click();
+                
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    confirmDownload(item.index.toString());
+                }, 100);
+            })
+            .catch(error => console.error('There was an error:', error));
+        }
+        
+        function downloadAll(structIndices, requestName) {
+            fetch('/download_zip', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({data: {indices: structIndices, name: requestName}}),
+            })
+            .then(response => {
+                if (response.ok) return response.blob();
+                throw new Error('Network response was not ok.');
+            })
+            .then(blob => {
+                const url = window.URL.createObjectURL(blob);
+
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+
+                a.download = requestName + '.zip'; // You can specify the filename here
+
+                document.body.appendChild(a);
+
+                a.click();
+                
+                setTimeout(() => {
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    confirmDownload(requestName);
+                }, 100);
+            })
+            .catch(error => console.error('There was an error:', error));
+        }
+        
+        function confirmDownload(fileName) {
+            fetch('/confirm_download', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({name: fileName}),
+            })
+            .then(response => response.json())
+            .catch(error => console.error('Confirmation error:', error));
+        }
+        
+        function requestHull(fieldNames, structIndices) {
+            const fieldValues = {};
+            fieldNames.forEach(fieldName => {
+                const inputValue = document.querySelector(`input[name="hull_element_${fieldName}"]`).value;
+                fieldValues[fieldName] = inputValue == '' ? 0. : parseFloat(inputValue);
+            });
+            
+            var energy = document.getElementById('energyInput').value;
+            energy = energy == '' ? '0' : energy
+
+            fetch('/get-hull', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({'composition': fieldValues, 'indices': structIndices, 'energy': parseFloat(energy)}),
+            })
+            .then(response => response.json())
+            .then(data => {
+                const responseContainer = document.getElementById('convexHullValue');
+                responseContainer.innerHTML = 'Distance to hull: ' + data['distance']
+                responseContainer.appendChild(document.createElement('br'));
+                responseContainer.appendChild(document.createElement('br'));
+                const decomposeDescription = document.createElement('p');
+                responseContainer.appendChild(decomposeDescription);
+                decomposeDescription.innerHTML = 'Decomposes to: ';
+                responseContainer.appendChild(document.createElement('br'));
+                const decompose_table = document.createElement('table');
+                var table_head = document.createElement('thead');
+                decompose_table.appendChild(table_head);
+                var head_row = document.createElement('tr');
+                table_head.appendChild(head_row);
+                head_row.className = 'decompose_header';
+                
+                var captions = ['Composition', 'Formation Energy', 'Proportion in decomposition'];
+                
+                captions.forEach(caption => {
+                    const cell = document.createElement('th');
+                    cell.innerHTML = caption;
+                    head_row.appendChild(cell);
+                })
+                
+                decompose_table.classList.add("decompose-table");
+                data.simplexData.forEach(simplexStruct => {
+                    const row = decompose_table.insertRow();
+
+                    cell = row.insertCell();
+                    cell.innerHTML = simplexStruct.description;
+                    
+                    cell = row.insertCell();
+                    cell.innerHTML = simplexStruct.e;
+                    
+                    cell = row.insertCell();
+                    cell.innerHTML = simplexStruct.decompose_proportion.toString();
+                });
+                decomposeDescription.appendChild(decompose_table);
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+{% endblock %}
+
+
